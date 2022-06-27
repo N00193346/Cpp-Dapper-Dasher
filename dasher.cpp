@@ -11,29 +11,50 @@ int main()
     //Initalise window
     InitWindow(windowWidth,windowHeight, "Dapper Dasher");
 
-    //Acceleration due to gravity (pixels/frame)/frame
-    const int gravity{1};
-    const int jumpVel{-22};
+    //Acceleration due to gravity (pixels/s)/s
+    const int gravity{1000};
+    //Jump velocity (pixels per second)
+    const int jumpVel{-600};
 
     bool isInAir{false};
 
-    //Rectangle dimensions
-    const int width{50};
-    const int height{80};
+    //Loading sprite Texture
+    Texture2D scarfy = LoadTexture("textures/scarfy.png");
+    //Rectangle to select section of sprite texture
+    Rectangle scarfyRec;
+    scarfyRec.width = scarfy.width/6;
+    scarfyRec.height = scarfy.height;
+    scarfyRec.x = 0;
+    scarfyRec.y = 0;
+    //Position of the sprite
+    Vector2 scarfyPos;
+    scarfyPos.x = windowWidth/2 - scarfyRec.width/2;
+    scarfyPos.y = windowHeight - scarfyRec.height;
 
-    int posY{windowHeight - height};
+    //Animation frame
+    int frame{};
+
+    //Amount of time before update the animation 
+    const float updateTime{1.0/12.0};
+    float runningTime{};
     int velocity{0};
+   
 
     SetTargetFPS(60);
     while (!WindowShouldClose())
     {
+
+        //Delta time
+        const float dT{GetFrameTime()};
+
+
         //Start drawing
         BeginDrawing();
         ClearBackground(WHITE);
 
  
         //Check if on the ground
-        if (posY >= windowHeight - height) 
+        if (scarfyPos.y >= windowHeight - scarfyRec.height) 
         {
             //rectangle on the ground
             velocity = 0;
@@ -41,7 +62,7 @@ int main()
         } else
         {
             //Apply gravity
-            velocity += gravity;
+            velocity += gravity * dT;
         }
 
         //Check for jumping
@@ -52,14 +73,30 @@ int main()
         }
 
         //Update position
-        posY += velocity;
+        scarfyPos.y += velocity * dT;
 
-        DrawRectangle(windowWidth/2, posY, width, height, BLUE);
+        //Update running time
+        runningTime += dT;
+        if (runningTime >= updateTime)
+        {
+            runningTime = 0.0;
+            //Update animation frame
+            scarfyRec.x = frame * scarfyRec.width;
+            frame++;
+            if (frame > 5)
+            {
+                frame = 0;
+            }
+        }
+
+
+        DrawTextureRec(scarfy, scarfyRec, scarfyPos, WHITE);
         
        
 
         EndDrawing();
     }
+    UnloadTexture(scarfy);
     CloseWindow();
 
 }
