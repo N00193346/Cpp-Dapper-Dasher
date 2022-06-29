@@ -1,7 +1,7 @@
 #include "raylib.h"
 
 
-struct AnimnData
+struct AnimData
 {
     Rectangle rec;
     Vector2 pos;
@@ -14,11 +14,15 @@ int main()
 {
 
     //Window dimensions
-    const int windowWidth {513};
-    const int windowHeight {380};
+    int windowDimensions[2];
+    windowDimensions[0] = 512;
+    windowDimensions[1] = 380;
+
+    
+  
 
     //Initalise window
-    InitWindow(windowWidth,windowHeight, "Dapper Dasher");
+    InitWindow(windowDimensions[0], windowDimensions[1], "Dapper Dasher");
 
     //Acceleration due to gravity (pixels/s)/s
     const int gravity{1000};
@@ -29,52 +33,39 @@ int main()
 
     //Loading sprite Texture
     Texture2D scarfy = LoadTexture("textures/scarfy.png");
+    Texture2D nebula = LoadTexture("textures/12_nebula_spritesheet.png");
 
-    AnimnData scarfyData;
+    AnimData scarfyData;
     scarfyData.rec.width = scarfy.width/6;
     scarfyData.rec.height = scarfy.height;
     scarfyData.rec.x = 0;
     scarfyData.rec.y = 0;
-    scarfyData.pos.x  = windowWidth/2 - scarfyData.rec.width/2;
-    scarfyData.pos.x  = windowWidth/2 - scarfyData.rec.height;
+    scarfyData.pos.x  = windowDimensions[0]/2 - scarfyData.rec.width/2;
+    scarfyData.pos.x  = windowDimensions[0]/2 - scarfyData.rec.height;
     scarfyData.frame = 0;
     scarfyData.updateTime = 1.0/12.0;
     scarfyData.runningTime = 0.0;
 
 
-    Texture2D nebula = LoadTexture("textures/12_nebula_spritesheet.png");
+    AnimData nebulae[3]{};
 
-    //Rectangle to select section of sprite texture
-    Rectangle scarfyRec;
-    scarfyRec.width = scarfy.width/6;
-    scarfyRec.height = scarfy.height;
-    scarfyRec.x = 0;
-    scarfyRec.y = 0;
+    for (int i = 0; i < 3; i++ )
+    {
+        nebulae[i].rec.x = 0.0;
+        nebulae[i].rec.y = 0.0;
+        nebulae[i].rec.width = nebula.width/8; 
+        nebulae[i].rec.height = nebula.height/8;
+        nebulae[i].pos.y =  windowDimensions[1] - nebula.height/8;     
+        nebulae[i].frame = 0;     
+        nebulae[i].runningTime = 0.0;     
+        nebulae[i].updateTime = 0.0;
 
-    Rectangle nebRec{0.0, 0.0, nebula.width/8, nebula.height/8};
-    Rectangle neb2Rec{0.0, 0.0, nebula.width/8, nebula.height/8};
+    }
 
-    //Position of the sprite
-    Vector2 scarfyPos;
-    scarfyPos.x = windowWidth/2 - scarfyRec.width/2;
-    scarfyPos.y = windowHeight - scarfyRec.height;
+    nebulae[0].pos.x = windowDimensions[0];
+    nebulae[1].pos.x = windowDimensions[0] + 300;
+    nebulae[2].pos.x = windowDimensions[0] + 600;
 
-    Vector2 nebPos{windowWidth, windowHeight - nebRec.height};
-    Vector2 neb2Pos{windowWidth + 300, windowHeight - nebRec.height};
-  
-    //Animation frame
-    int frame{};
-    int nebFrame{};
-    int neb2Frame{};
-
-    //Amount of time before update the animation 
-    const float updateTime{1.0/12.0};
-    const float nebUpdateTime{1.0/12.0};
-    const float neb2UpdateTime{1.0/12.0};
-
-    float runningTime{};
-    float nebRunningTime{};   
-    float neb2RunningTime{};
 
     int velocity{0};
     //Nebula x velocity (pixels/second)
@@ -95,7 +86,7 @@ int main()
 
  
         //Check if on the ground
-        if (scarfyPos.y >= windowHeight - scarfyRec.height) 
+        if (scarfyData.pos.y >= windowDimensions[1] - scarfyData.rec.height) 
         {
             //rectangle on the ground
             velocity = 0;
@@ -115,67 +106,58 @@ int main()
 
 
         //Update nebula position
-        nebPos.x += nebVel * dT;
+       nebulae[0].pos.x += nebVel * dT;
 
         //Update nebula2 position
-        neb2Pos.x += nebVel * dT;
+        nebulae[1].pos.x += nebVel * dT;
 
         //Update character position
-        scarfyPos.y += velocity * dT;
+       scarfyData.pos.y += velocity * dT;
 
         //Update chartacter running time
-        runningTime += dT;
-        if (runningTime >= updateTime)
+        scarfyData.runningTime += dT;
+        if (scarfyData.runningTime >= scarfyData.updateTime)
         {
-            runningTime = 0.0;
+            scarfyData.runningTime = 0.0;
             //Update animation frame
             if (!isInAir){
-                scarfyRec.x = frame * scarfyRec.width;
-                frame++;
-                if (frame > 5)
+                scarfyData.rec.x = scarfyData.frame * scarfyData.rec.width;
+                scarfyData.frame++;
+                if (scarfyData.frame > 5)
                 {
-                    frame = 0;
+                    scarfyData.frame = 0;
                 }
             }
         }
 
         //Update nebula running time
-        nebRunningTime += dT;
-        if (nebRunningTime >= nebUpdateTime)
-        {
-            nebRunningTime = 0.0;
-            //Update animation frame
-            nebRec.x = nebFrame * nebRec.width;
-            nebFrame++;
-            if (nebFrame > 7)
+        for (int i; i < 3; i ++){
+
+            nebulae[i].runningTime += dT;
+            if (nebulae[i].runningTime >= nebulae[i].updateTime)
             {
-                nebFrame = 0;
-            }
-       
+                nebulae[i].runningTime = 0.0;
+                //Update animation frame
+                nebulae[i].rec.x = nebulae[i].frame * nebulae[i].rec.width;
+                nebulae[i].frame++;
+                if (nebulae[i].frame > 7)
+                {
+                    nebulae[i].frame = 0;
+                } 
         }
 
-         //Update nebula2 running time
-        neb2RunningTime += dT;
-        if (neb2RunningTime >= neb2UpdateTime)
-        {
-            nebRunningTime = 0.0;
-            //Update animation frame
-            neb2Rec.x = neb2Frame * neb2Rec.width;
-            neb2Frame++;
-            if (neb2Frame > 7)
-            {
-                neb2Frame = 0;
-            }
-       
         }
+  
 
         //Draw nebula
-        DrawTextureRec(nebula, nebRec, nebPos, WHITE);
+        DrawTextureRec(nebula, nebulae[0].rec, nebulae[0].pos, WHITE);
         //Draw nebula2
-        DrawTextureRec(nebula, neb2Rec, neb2Pos, RED);
+        DrawTextureRec(nebula, nebulae[1].rec, nebulae[1].pos, RED);
+          //Draw nebula2
+        DrawTextureRec(nebula, nebulae[2].rec, nebulae[2].pos, WHITE);
 
         //Draw character 
-        DrawTextureRec(scarfy, scarfyRec, scarfyPos, WHITE);
+        DrawTextureRec(scarfy, scarfyData.rec, scarfyData.pos, WHITE);
         
        
 
